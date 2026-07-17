@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESIR – Kasirski program</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fa 0%, #e9edf2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* LOCK SCREEN */
+        #lockScreen {
+            background: white;
+            max-width: 400px;
+            width: 100%;
+            padding: 40px 28px;
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: 0.25s;
+        }
+
+        #lockScreen i {
+            font-size: 48px;
+            color: #2c3e50;
+            background: #ecf0f1;
+            padding: 18px;
+            border-radius: 60px;
+            margin-bottom: 18px;
+        }
+
+        #lockScreen h2 {
+            font-weight: 600;
+            color: #1e2b37;
+            margin-bottom: 6px;
+        }
+
+        #lockScreen p {
+            color: #5e6f7e;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .pin-input-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #pinInput {
+            border: 2px solid #d0d9e2;
+            border-radius: 40px;
+            padding: 14px 20px;
+            font-size: 1.2rem;
+            width: 170px;
+            text-align: center;
+            letter-spacing: 4px;
+            background: #f8faff;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+
+        #pinInput:focus {
+            outline: none;
+            border-color: #3b5b7a;
+            box-shadow: 0 0 0 4px rgba(59, 91, 122, 0.2);
+        }
+
+        #unlockBtn {
+            background: #1e2b37;
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 0 #0f171f;
+        }
+
+        #unlockBtn:hover {
+            background: #2c4050;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #0f171f;
+        }
+
+        #unlockBtn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0f171f;
+        }
+
+        .error-msg {
+            color: #c0392b;
+            font-weight: 500;
+            margin-top: 16px;
+            background: #fde8e5;
+            padding: 10px 14px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            display: inline-block;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .error-msg.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* GLAVNI KASIRSKI INTERFACE */
+        #cashierApp {
+            display: none;
+            background: white;
+            max-width: 920px;
+            width: 100%;
+            border-radius: 48px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            padding: 30px 30px 40px;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ecf0f3;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .app-header h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #1a2630;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-header h1 i {
+            color: #2c3e50;
+            background: #eef2f7;
+            padding: 12px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+        }
+
+        .lock-badge {
+            background: #eef2f7;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e2b37;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lock-badge i {
+            color: #27ae60;
+        }
+
+        /* unos */
+        .entry-panel {
+            background: #f8fafd;
+            padding: 22px 20px;
+            border-radius: 32px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 14px 18px;
+            border: 1px solid #e3e9f0;
+        }
+
+        .entry-group {
+            flex: 1 1 150px;
+            min-width: 120px;
+        }
+
+        .entry-group label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #4d637a;
+            margin-bottom: 5px;
+        }
+
+        .entry-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #d8e0e9;
+            border-radius: 30px;
+            font-size: 1rem;
+            background: white;
+            transition: 0.15s;
+            font-weight: 500;
+        }
+
+        .entry-group input:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.15);
+        }
+
+        .add-btn {
+            background: #1e2b37;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 0 #0f171f;
+            flex: 0 0 auto;
+        }
+
+        .add-btn:hover {
+            background: #2c4050;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0f171f;
+        }
+
+        .add-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0f171f;
+        }
+
+        /* tabela */
+        .items-table-wrapper {
+            overflow-x: auto;
+            border-radius: 24px;
+            border: 1px solid #e6ecf3;
+            background: white;
+            margin-bottom: 22px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: #eef3f8;
+            color: #1f2e3c;
+            font-weight: 700;
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 2px solid #d4dce6;
+        }
+
+        td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #e9eff5;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #1e2b37;
+        }
+
+        .item-price,
+        .item-total {
+            font-weight: 600;
+            color: #1d2b39;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #b13e3e;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            padding: 6px 10px;
+            border-radius: 30px;
+        }
+
+        .delete-btn:hover {
+            background: #fce9e9;
+            color: #a12222;
+            transform: scale(1.1);
+        }
+
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: #f2f6fc;
+            padding: 18px 24px;
+            border-radius: 60px;
+            margin-top: 6px;
+        }
+
+        .total-label {
+            font-weight: 600;
+            color: #2a3b4a;
+            font-size: 1.1rem;
+        }
+
+        .total-amount {
+            font-weight: 800;
+            font-size: 2rem;
+            color: #0a1a26;
+            letter-spacing: 1px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            border: none;
+            background: white;
+            padding: 12px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1e2b37;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #dae1ea;
+        }
+
+        .action-btn:hover {
+            background: #f5f9ff;
+            border-color: #b0c2d4;
+        }
+
+        .action-btn.print-btn {
+            background: #1e2b37;
+            color: white;
+            border: none;
+            box-shadow: 0 5px 0 #0f171f;
+        }
+
+        .action-btn.print-btn:hover {
+            background: #2c4050;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0f171f;
+        }
+
+        .action-btn.print-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0f171f;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #7e8f9e;
+            padding: 28px 12px;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            #lockScreen,
+            #cashierApp {
+                border-radius: 28px;
+                padding: 24px 16px;
+            }
+            .entry-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .add-btn {
+                justify-content: center;
+            }
+            .summary {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                border-radius: 32px;
+            }
+            .action-buttons {
+                justify-content: center;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: start;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOCK SCREEN -->
+    <div id="lockScreen">
+        <div><i class="fas fa-lock"></i></div>
+        <h2>ESIR prodavnica</h2>
+        <p>Unesite šifru za pristup</p>
+        <div class="pin-input-group">
+            <input type="password" id="pinInput" placeholder="• • • • • •" maxlength="6" inputmode="numeric">
+            <button id="unlockBtn"><i class="fas fa-unlock-alt"></i> Otključaj</button>
+        </div>
+        <div id="pinError" class="error-msg"><i class="fas fa-exclamation-circle"></i> Neispravna šifra, pokušajte ponovo.</div>
+    </div>
+
+    <!-- GLAVNI KASIRSKI INTERFACE -->
+    <div id="cashierApp">
+        <div class="app-header">
+            <h1><i class="fas fa-cash-register"></i> ESIR · Prodavnica</h1>
+            <div class="lock-badge"><i class="fas fa-check-circle"></i> Otključano</div>
+        </div>
+
+        <!-- unos -->
+        <div class="entry-panel">
+            <div class="entry-group">
+                <label for="itemName"><i class="fas fa-tag"></i> Artikal</label>
+                <input type="text" id="itemName" placeholder="npr. Hleb" value="Hleb">
+            </div>
+            <div class="entry-group">
+                <label for="itemPrice"><i class="fas fa-euro-sign"></i> Cena (RSD)</label>
+                <input type="number" id="itemPrice" placeholder="0.00" value="85.50" step="0.01" min="0">
+            </div>
+            <div class="entry-group">
+                <label for="itemQty"><i class="fas fa-hashtag"></i> Količina</label>
+                <input type="number" id="itemQty" placeholder="1" value="1" step="1" min="1">
+            </div>
+            <button class="add-btn" id="addItemBtn"><i class="fas fa-plus-circle"></i> Dodaj</button>
+        </div>
+
+        <!-- tabela -->
+        <div class="items-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Artikal</th>
+                        <th>Cena (RSD)</th>
+                        <th>Količina</th>
+                        <th>Ukupno (RSD)</th>
+                        <th style="text-align:center"><i class="fas fa-trash-alt"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <!-- artikli -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- summary -->
+        <div class="summary">
+            <div>
+                <span class="total-label"><i class="fas fa-shopping-bag"></i> Ukupno za naplatu</span>
+            </div>
+            <div>
+                <span class="total-amount" id="totalDisplay">0.00</span> RSD
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" id="clearAllBtn"><i class="fas fa-undo-alt"></i> Novi račun</button>
+                <button class="action-btn print-btn" id="printReceiptBtn"><i class="fas fa-print"></i> Štampaj / Račun</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- ŠIFRA (promijenjena na 444999) ---
+            const CORRECT_PIN = "444999";
+
+            // DOM reference
+            const lockScreen = document.getElementById('lockScreen');
+            const cashierApp = document.getElementById('cashierApp');
+            const pinInput = document.getElementById('pinInput');
+            const unlockBtn = document.getElementById('unlockBtn');
+            const pinError = document.getElementById('pinError');
+
+            const itemNameInput = document.getElementById('itemName');
+            const itemPriceInput = document.getElementById('itemPrice');
+            const itemQtyInput = document.getElementById('itemQty');
+            const addBtn = document.getElementById('addItemBtn');
+            const itemsBody = document.getElementById('itemsBody');
+            const totalDisplay = document.getElementById('totalDisplay');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const printBtn = document.getElementById('printReceiptBtn');
+
+            // Podaci
+            let items = [];
+            let nextId = 1;
+
+            // Render
+            function renderItems() {
+                if (!itemsBody) return;
+                if (items.length === 0) {
+                    itemsBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-msg">
+                                <i class="fas fa-receipt" style="margin-right: 8px;"></i> Nema dodanih artikala
+                            </td>
+                        </tr>
+                    `;
+                    totalDisplay.textContent = '0.00';
+                    return;
+                }
+
+                let html = '';
+                let total = 0;
+                items.forEach((item) => {
+                    const lineTotal = item.price * item.quantity;
+                    total += lineTotal;
+                    html += `
+                        <tr>
+                            <td class="item-name">${escapeHtml(item.name)}</td>
+                            <td class="item-price">${item.price.toFixed(2)}</td>
+                            <td>${item.quantity}</td>
+                            <td class="item-total">${lineTotal.toFixed(2)}</td>
+                            <td style="text-align:center">
+                                <button class="delete-btn" data-id="${item.id}" title="Obriši stavku">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                itemsBody.innerHTML = html;
+                totalDisplay.textContent = total.toFixed(2);
+
+                // Delete dugmad
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'), 10);
+                        items = items.filter(item => item.id !== id);
+                        renderItems();
+                    });
+                });
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+
+            // Dodavanje artikla
+            function addItem() {
+                const name = itemNameInput.value.trim();
+                const price = parseFloat(itemPriceInput.value);
+                const qty = parseInt(itemQtyInput.value, 10);
+
+                if (!name) {
+                    alert('Molimo unesite naziv artikla.');
+                    itemNameInput.focus();
+                    return;
+                }
+                if (isNaN(price) || price < 0) {
+                    alert('Unesite ispravnu cenu (broj ≥ 0).');
+                    itemPriceInput.focus();
+                    return;
+                }
+                if (isNaN(qty) || qty < 1) {
+                    alert('Količina mora biti najmanje 1.');
+                    itemQtyInput.focus();
+                    return;
+                }
+
+                items.push({
+                    id: nextId++,
+                    name: name,
+                    price: price,
+                    quantity: qty
+                });
+
+                renderItems();
+
+                // Reset unos (ostavimo ime radi brzine)
+                itemPriceInput.value = '';
+                itemQtyInput.value = '1';
+                itemNameInput.value = '';
+                itemNameInput.focus();
+            }
+
+            // Brisanje svih
+            function clearAll() {
+                if (items.length === 0) return;
+                if (confirm('Da li želite da poništite sve stavke i započnete novi račun?')) {
+                    items = [];
+                    nextId = 1;
+                    renderItems();
+                    itemNameInput.value = '';
+                    itemPriceInput.value = '';
+                    itemQtyInput.value = '1';
+                    itemNameInput.focus();
+                }
+            }
+
+            // Štampanje računa
+            function printReceipt() {
+                if (items.length === 0) {
+                    alert('Nema artikala za štampanje. Dodajte barem jedan artikal.');
+                    return;
+                }
+
+                let lines = [];
+                lines.push('═══════════════════════════════');
+                lines.push('   ESIR PRODAVNICA   ');
+                lines.push('───────────────────────────────');
+                let total = 0;
+                items.forEach((item, idx) => {
+                    const lineTotal = item.price * item.quantity;
+                    total += lineTotal;
+                    lines.push(`${idx+1}. ${item.name}  ${item.quantity} x ${item.price.toFixed(2)} = ${lineTotal.toFixed(2)} RSD`);
+                });
+                lines.push('───────────────────────────────');
+                lines.push(`UKUPNO: ${total.toFixed(2)} RSD`);
+                lines.push('───────────────────────────────');
+                lines.push('Hvala na kupovini!');
+                lines.push('═══════════════════════════════');
+
+                alert(lines.join('\n'));
+            }
+
+            // --- OTKLJUČAVANJE ---
+            function tryUnlock() {
+                const entered = pinInput.value.trim();
+                if (entered === CORRECT_PIN) {
+                    lockScreen.style.display = 'none';
+                    cashierApp.style.display = 'block';
+                    pinError.classList.remove('show');
+                    pinInput.value = '';
+                    itemNameInput.focus();
+
+                    // Dodajemo nekoliko primjera (samo ako je prazno)
+                    if (items.length === 0) {
+                        items.push({ id: nextId++, name: 'Hleb', price: 85.50, quantity: 2 });
+                        items.push({ id: nextId++, name: 'Mleko', price: 120.00, quantity: 1 });
+                        items.push({ id: nextId++, name: 'Jaja (10kom)', price: 250.00, quantity: 1 });
+                    }
+                    renderItems();
+                } else {
+                    pinError.classList.add('show');
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            }
+
+            // Event listeneri
+            unlockBtn.addEventListener('click', tryUnlock);
+            pinInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    tryUnlock();
+                }
+            });
+
+            addBtn.addEventListener('click', addItem);
+            document.querySelectorAll('#itemName, #itemPrice, #itemQty').forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addItem();
+                    }
+                });
+            });
+
+            clearAllBtn.addEventListener('click', clearAll);
+            printBtn.addEventListener('click', printReceipt);
+
+            // Početno stanje
+            lockScreen.style.display = 'block';
+            cashierApp.style.display = 'none';
+            pinInput.value = '';
+            pinError.classList.remove('show');
+            pinInput.focus();
+        })();
+    </script>
+</body>
+</html>
